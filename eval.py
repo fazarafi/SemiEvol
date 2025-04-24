@@ -1,141 +1,185 @@
 import random
-import re
 import pandas as pd
 import sys
-sys.path.append('..')
+from pathlib import Path
 import json
 import os
 import numpy as np
 from tqdm import tqdm
 import concurrent.futures
+from datetime import datetime
+import fire
+from typing import List, Dict, Any, Optional, Callable
+from dataclasses import dataclass
+# sys.path.append('..')
 from common import *
 from utils import *
 from config import *
-import datetime
 
+@dataclass
+class EvalConfig:
+    """Configuration for evaluation"""
+    model: str
+    temperature: float = 0.5
+    max_tokens: int = 1000
+    logprobs: bool = True
+    lora_path: Optional[str] = None
+    seed: int = 0
 
-class Eval:
-
-    def __init__(self, type='loop', examples=[], data_path=None, num_examples=None, config=None, task=''):
-        """
-        Args:
-            type: 'loop' or 'batch'
-            examples: a list of examples
-            data_path: a path to a csv file
-            num_examples: the number of examples to be evaluated
-            config: the configuration of the model
-        """
+class ResultSaver:
+    """Handle saving evaluation results"""
+    def __init__(self, task: str, save_dir: str = "./save"):
+        self.task = task
+        self.save_dir = Path(save_dir)
+        self.test_dir = self.save_dir / "test" / task
+        self.test_dir.mkdir(parents=True, exist_ok=True)
         
-        if data_path:
-            df = pd.read_csv(data_path)
-            examples = [row.to_dict() for _, row in df.iterrows()]
-        elif not examples:
-            raise ValueError("Either examples or data_path must be provided")
+    def save_results(self, results: List[Dict], accuracy: float):
+        """Save detailed results to CSV"""
+        res_df = pd.DataFrame(results)
+        res_df.to_csv(self.test_dir / f"{self.task}_{accuracy:.2f}.csv", index=False)
+    
+    def update_global_results(self, model: str, adapter: Optional[str], accuracy: float):
+        """Update global results file"""
+        adapter_name = os.path.basename(adapter) if adapter else "no_adapter"
+        with open(self.save_dir / "global_res.txt", "a") as f:
+            f.write(f"{self.task},{model},{adapter_name},{accuracy:.4f}\n")
 
-        if config is None:
-            config = {
-                "model": 'gpt-4o-mini',
-                "temperature": 0.5,
-                "max_tokens": 1000,
-            }
-            print(config)
-        
-        model = config['model'].replace('/', '_')
-        task = task
-        
+class SampleProcessor:
+    """Process and prepare evaluation samples"""
+    @staticmethod
+    def load_samples(task_config: Dict, num_samples: Optional[int] = None) -> List[Dict]:
+        df = pd.read_csv(task_config['test_path'])
+        if num_samples:
+            df = df.sample(n=num_samples, random_state=0)
+            
+        samples = []
+        for _, row in df.iterrows():
+            sample = row.to_dict()
+            sample.update({
+                'question_type': task_config['question_type'],
+                'additional_prompt': task_config['additional_prompt']
+            })
+            samples.append(sample)
+        return samples
+
+class Evaluator:
+    """Main evaluation class"""
+    def __init__(
+        self,
+        task: str,
+        config: EvalConfig,
+        samples: List[Dict],
+    ):
+        self.task = task
         self.config = config
-        
-        if num_examples:
-            examples = random.Random(0).sample(examples, num_examples)
-        self.examples = examples
-
-        assert type in ['batch', 'loop']
-
-        self.type = type
-        self.results = None
-        timestamp = datetime.datetime.now().strftime("%m%d_%H")
-        self.output_path = f'./save/{task}_{model}_{timestamp}.json'
+        self.samples = samples
+        self.model = config.model.replace('/', '_')
+        self.timestamp = datetime.now().strftime("%m%d_%H")
+        self.output_path = f'./save/infer/{task}_{self.model}_{self.timestamp}.json'
         self.gptreq = None
-    
-    def multiple_inference(self, instances, extract_fn):
+        
+    def _init_model(self):
+        """Initialize model if not already done"""
         if not self.gptreq:
-            self.gptreq = LoopRequest()
-        res_list = self.gptreq.batch_req(instances, self.config, save=True, save_dir=self.output_path)
-
-        assert len(res_list) == len(self.examples)
-
-        for i, s in enumerate(self.examples):
-            response = res_list[i]['response']
-            self.examples[i]["Pred"] = response
-            self.examples[i]["PredAnswer"] = extract_fn(response)
-            if "logprobs" in res_list[i]:
-                self.examples[i]["logprobs"] = res_list[i]["logprobs"]
-            # self.examples[i]["PredIndex"] = extract_result_index(response)
-
-    def batch_inference(self, instances, extract_fn):
-        res_list = batch_query_openai_chat_model(instances, self.config, save_dir=self.output_path)
-
-        assert len(res_list) == len(self.examples)
-        
-        for i, s in enumerate(self.examples):
-            response = res_list[i]['response']
-            self.examples[i]["Pred"] = response
-            self.examples[i]["PredAnswer"] = extract_fn(response)
+            self.gptreq = LocalRequest(
+                model_path=self.config.model,
+                lora_path=self.config.lora_path
+            )
     
-    def extract_results(self):
-        return self.examples
-
-    def eval(self, format_fn=format_question, check_fn=check_answer, extract_fn=extract_result):
-        print(f'Formating {len(self.examples)} questions ...')
-        instances = []
+    def _process_responses(self, res_list: List[Dict], extract_fn: Callable):
+        """Process model responses"""
+        assert len(res_list) == len(self.samples)
+        for i, (sample, result) in enumerate(zip(self.samples, res_list)):
+            response = result['response']
+            self.samples[i]["Pred"] = response
+            self.samples[i]["PredAnswer"] = extract_fn(response)
+            if "logprobs" in result:
+                self.samples[i]["logprobs"] = result["logprobs"]
+    
+    def run_inference(self, format_fn: Callable, extract_fn: Callable) -> float:
+        """Run inference and calculate accuracy"""
+        print(f'Formatting {len(self.samples)} questions ...')
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            instances = list(tqdm(executor.map(format_fn, self.examples), total=len(self.examples)))
-        # for row in tqdm(self.examples):
-        #     instances.append(format_fn(row))
-
-        print(f'Begin Inference ...')
-
-        if self.type == 'loop':
-            self.multiple_inference(instances, extract_fn)
-        else:
-            self.batch_inference(instances, extract_fn)
+            instances = list(tqdm(
+                executor.map(
+                    lambda x: [{"role": "user", "content": format_fn(x)}],
+                    self.samples
+                ),
+                total=len(self.samples)
+            ))
         
-        cors = []
-        for i, s in enumerate(self.examples):
-            score = 1.0 if check_fn(s['Pred'], s["answer"]) else 0.0
-            cors.append(score)
-
-        acc = np.mean(cors)
-        return acc
-
-    def get_results(self):
-        return self.examples
-
+        print('Beginning inference ...')
+        self._init_model()
+        config_dict = {
+            "model": self.config.model,
+            "temperature": self.config.temperature,
+            "max_tokens": self.config.max_tokens,
+            "logprobs": self.config.logprobs,
+            "seed": self.config.seed
+        }
+        res_list = self.gptreq.batch_req(instances, config_dict, save=True, save_dir=self.output_path)
+        self._process_responses(res_list, extract_fn)
+        
+        return self.calculate_accuracy(TASK_CONFIG[self.task]['check_fn'])
     
+    def calculate_accuracy(self, check_fn: Callable) -> float:
+        """Calculate accuracy of predictions"""
+        scores = [
+            1.0 if check_fn(s['Pred'], s["answer"]) else 0.0
+            for s in self.samples
+        ]
+        return np.mean(scores)
+
+def eval_model(
+    task: str,
+    model: str,
+    adapter: Optional[str] = None,
+    num_samples: Optional[int] = None
+):
+    """
+    Run evaluation with specified parameters
+    
+    Args:
+        task: Task name (e.g. 'arc')
+        model: Model path or name
+        adapter: Optional LoRA adapter path
+        num_samples: Optional number of samples to evaluate
+    """
+    if task not in TASK_CONFIG:
+        raise ValueError(f'Task {task} not found in TASK_CONFIG')
+
+    if model in MODELS_CONFIG:
+        adapter = MODELS_CONFIG[model]['adapter']
+        model = MODELS_CONFIG[model]['name']
+    
+    # random seed
+    seed = random.randint(0, 1000000)
+    
+    # Initialize components
+    config = EvalConfig(
+        model=model,
+        lora_path=adapter,
+        seed=seed
+    )
+    
+    samples = SampleProcessor.load_samples(TASK_CONFIG[task], num_samples)
+    evaluator = Evaluator(task, config, samples)
+    saver = ResultSaver(task)
+    
+    # Run evaluation
+    accuracy = evaluator.run_inference(
+        format_fn=format_question_vanilla,
+        extract_fn=extract_result
+    )
+    
+    print(f'Accuracy: {accuracy}')
+    
+    # Save results
+    saver.save_results(evaluator.samples, accuracy)
+    saver.update_global_results(model, adapter, accuracy)
+
 if __name__ == "__main__":
-    global_res_file = 'global_res.txt'
+    fire.Fire(eval_model)
 
-    task_list = ['mmlu']
-    model_list = ['gpt-4o-mini']
-
-    for task in task_list:
-        for model in model_list:
-
-            assert task in TASK_CONFIG and model in MODELS_CONFIG
-
-            model_config = MODELS_CONFIG[model]
-            eval_config = EVAL_UTILS[TASK_CONFIG[task]]
-            os.environ['LLM_BASE_URL'] = model_config["url"]
-            infer_config = {
-                "model": model_config["name"],
-                "temperature": 0.5,
-                "max_tokens": 1000,
-                # "logprobs": True ## Output logprobs to calculate the entropy of the response.
-            }
-
-            eval = Eval(type=model_config["method"], data_path=f'./data/{task}/test.csv', config=infer_config, task=task)
-            print(f'Evaluate {task} with {model} ...')
-
-            acc = eval.eval(**eval_config)
-
-            print(f'Accuracy: {acc}') 
+__all__ = ['Evaluator', 'EvalConfig', 'ResultSaver', 'SampleProcessor']

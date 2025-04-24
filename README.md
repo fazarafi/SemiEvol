@@ -6,23 +6,6 @@ This repository contains the official implementation of the paper: [**SemiEvol: 
 
 We have developed **SemiEvol**, which leverages labeled data to enhance inference on unlabeled data, thereby improving the reasoning capabilities of Large Language Models (LLMs). This process is characterized as a bi-level knowledge propagation and selection mechanism.
 
-## BibTex
-
-If our work has been helpful to you, please consider citing it. Your citation serves as encouragement for our research.
-```BibTex
-@misc{luo2024semievol,
-    title={SemiEvol: Semi-supervised Fine-tuning for LLM Adaptation}, 
-    author={Junyu Luo and Xiao Luo and Xiusi Chen and Zhiping Xiao and Wei Ju and Ming Zhang},
-    year={2024},
-    eprint={2410.14745},
-    archivePrefix={arXiv},
-    primaryClass={cs.CL},
-    url={https://arxiv.org/abs/2410.14745}, 
-}
-```
-
-You can also find the paper at [HuggingFace](https://huggingface.co/papers/2410.14745). 
-
 ## Framework
 
 ![SemiEvol](figs/semievol.png)
@@ -48,39 +31,31 @@ We have released model weights for two tasks to facilitate testing:
 
 ## Usage
 
-- For **evaluation**, execute:
-
-```python
-python eval.py
-```
-You can modify relevant parameters, including task and model, in `eval.py`.
-
 - To run the **SemiEvol** process, use:
 
 ```python
-python semievol.py
+python pipeline.py --task mmlu --model llama3.1
 ```
-You can adjust parameters such as task, model, and other hyperparameters in `semievol.py`.
-
-- For evaluation of **RAG** methods, run:
-
-```python
-python rag-eval.py
-```
-
-- To convert data for fine-tuning, use:
-
-```python
-python utils/convert_data.py
-```
+You can adjust parameters such as task, model, and other hyperparameters in `pipeline.py`.
 
 **Please modify the parameters in the code before execution.**
 
-
-- For Supervised Fine-Tuning (SFT) on Llama, we recommend referring to [LlamaFactory](https://github.com/hiyouga/LLaMA-Factory/). In our paper's experiments, we utilized LoRA for LLMs' SFT.
-
-
-- For SFT on GPT*, please refer to https://platform.openai.com/finetune and https://platform.openai.com/docs/guides/fine-tuning.
+**Note that you need to register your model in `config.py`.**
 
 
-- After SFT, consider using inference frameworks like vLLM to infer your model. **Note that you need to register your model in `config.py`.**
+## BibTex
+
+If our work has been helpful to you, please consider citing it. Your citation serves as encouragement for our research.
+```BibTex
+@misc{luo2024semievol,
+    title={SemiEvol: Semi-supervised Fine-tuning for LLM Adaptation}, 
+    author={Junyu Luo and Xiao Luo and Xiusi Chen and Zhiping Xiao and Wei Ju and Ming Zhang},
+    year={2024},
+    eprint={2410.14745},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL},
+    url={https://arxiv.org/abs/2410.14745}, 
+}
+```
+
+You can also find the paper at [HuggingFace](https://huggingface.co/papers/2410.14745). 

@@ -13,3 +13,4 @@ langsmith
 rank-bm25
 retrying
 func-timeout
+fire

@@ -3,136 +3,102 @@ from common import *
 MODELS_CONFIG = {
     "llama3.1": {
         "name": "meta-llama/Meta-Llama-3.1-8B-Instruct",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
+        "adapter": ""
     },
-    "llama3.1-mmlu-labeled": {
-        "name": "mmlu_labeled",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
+    "llama3.2": {
+        "name": "meta-llama/Llama-3.2-3B-Instruct",
+        "adapter": ""
     },
-     "llama3.1-mmlu_pro_labeled": {
-        "name": "mmlu_pro_labeled",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
+    "gemma2": {
+        "name": "google/gemma-2-9b-it",
+        "adapter": ""
     },
-    "llama3.1-mmlu_pro_pseudo": {
-        "name": "mmlu_pro_pseudo",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
-    },
-    "llama3.1-arc_labeled": {
-        "name": "arc_labeled",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
-    },
-    "llama3.1-arc_pseudo": {
-        "name": "arc_pseudo",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
-    },
-    "Reflection-Llama-3.1-8B": {
-        "name": "Solshine/reflection-llama-3.1-8B",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
-    },
-    "Hermes-3-Llama-3.1-8B": {
-        "name": "NousResearch/Hermes-3-Llama-3.1-8B",
-        "url": "http://localhost:6003/v1",
-        "method": "loop"
-    },
-    "adaptllm-med": {
-        "name": "AdaptLLM/medicine-chat",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
-    },
-    "adaptllm-fin": {
-        "name": "AdaptLLM/finance-chat",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
-    },
-    "instuctpt-med": {
-        "name": "AdaptLLM/instuctpt-chat",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
-    },
-    "instuctpt-fin": {
-        "name": "AdaptLLM/instuctpt-chat",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
-    },
-    "memoryllm": {
-        "name": "memoryllm",
-        "url": "http://localhost:6006/v1",
-        "method": "loop"
-    },
-    "gpt-4o-mini": {
-        "name": "gpt-4o-mini",
-        "url": "https://api.openai.com/v1",
-        "method": "batch"
-    },
-    "gpt-4o-mini-arc_labeled": {
-        "name": "ft:gpt-4o-mini-2024-07-18:xxxx",
-        "url": "https://api.openai.com/v1",
-        "method": "batch"
-    },
-    "gpt-4o-mini-usmle_labeled": {
-        "name": "ft:gpt-4o-mini-2024-07-18:xxxx",
-        "url": "https://api.openai.com/v1",
-        "method": "batch"
-    },
-    "gpt-4o-mini-pubmedqa_labeled": {
-        "name": "ft:gpt-4o-mini-2024-07-18:xxxx",
-        "url": "https://api.openai.com/v1",
-        "method": "batch"
-    },
-    "gpt-4o-mini-fpb_labeled": {
-        "name": "ft:gpt-4o-mini-2024-07-18:xxxx",
-        "url": "https://api.openai.com/v1",
-        "method": "batch"
-    },
-    "gpt-4o-mini-convfinqa_labeled": {
-        "name": "ft:gpt-4o-mini-2024-07-18:xxxx",
-        "url": "https://api.openai.com/v1",
-        "method": "batch"
-    }
 }
 
 
 TASK_CONFIG = {
-    'mmlu': 'multiple_choice',
-    'mmlu_pro' :'multiple_choice',
-    'arc':'multiple_choice',
-    'FPB' :'multiple_choice',
-    'PubMedQA':'multiple_choice',
-    'USMLE':'multiple_choice',
-    'ConvFinQA' :'math'
-}
-
-FUNCTION_UTILS = {
-    'math': {
-        'format_fn': format_value_prompt,
-        'check_fn': check_answer,
-        'few_shot_prompt': FEW_SHOT_VALUE_SYSTEM,
-        'reflection_fn': format_reflection_value,
+    "mmlu": {
+        "dataset_name": "mmlu",
+        "test_path": "./data/mmlu/test.csv",
+        "labeled_path": "./data/mmlu/labeled.csv",
+        "unlabeled_path": "./data/mmlu/unlabeled.csv",
+        "question_type": "multi-choice",
+        "additional_prompt": "Your response should be of the following format: 'Answer: LETTER' (without quotes, The LETTER should be in A,B,C,D).",
+        "check_fn": check_answer
     },
-    'multiple_choice': {
-        'format_fn': format_multichoice_question,
-        'check_fn': check_answer,
-        'few_shot_prompt': FEW_SHOT_SYSTEM,
-        'reflection_fn': format_reflection,
+    "mmlu_pro": {
+        "dataset_name": "mmlu_pro",
+        "test_path": "./data/mmlu_pro/test.csv",
+        "labeled_path": "./data/mmlu_pro/labeled.csv",
+        "unlabeled_path": "./data/mmlu_pro/unlabeled.csv",
+        "question_type": "multi-choice",
+        "additional_prompt": "",
+        "check_fn": check_answer
+    },
+    "arc": {
+        "dataset_name": "arc",
+        "test_path": "./data/arc/test.csv",
+        "labeled_path": "./data/arc/labeled.csv",
+        "unlabeled_path": "./data/arc/unlabeled.csv",
+        "noisy_path": "./data/arc/noisy.csv",
+        "question_type": "multi-choice",
+        "additional_prompt": "",
+        "check_fn": check_answer
+    },
+    "fpb": {
+        "dataset_name": "fpb",
+        "test_path": "./data/fpb/test.csv",
+        "labeled_path": "./data/fpb/labeled.csv",
+        "unlabeled_path": "./data/fpb/unlabeled.csv",
+        "noisy_path": "./data/fpb/noisy.csv",
+        "question_type": "multi-choice",
+        "additional_prompt": "",
+        "check_fn": check_answer
+    },
+    "pubmedqa": {
+        "dataset_name": "pubmedqa",
+        "test_path": "./data/pubmedqa/test.csv",
+        "labeled_path": "./data/pubmedqa/labeled.csv",
+        "unlabeled_path": "./data/pubmedqa/unlabeled.csv",
+        "question_type": "multi-choice",
+        "additional_prompt": "",
+        "check_fn": check_answer
+    },
+    "usmle": {
+        "dataset_name": "usmle",
+        "test_path": "./data/usmle/test.csv",
+        "labeled_path": "./data/usmle/labeled.csv",
+        "unlabeled_path": "./data/usmle/unlabeled.csv",
+        "question_type": "multi-choice",
+        "additional_prompt": "",
+        "check_fn": check_answer
+    },
+    "convfinqa": {
+        "dataset_name": "convfinqa",
+        "test_path": "./data/convfinqa/test.csv",
+        "labeled_path": "./data/convfinqa/labeled.csv",
+        "unlabeled_path": "./data/convfinqa/unlabeled.csv",
+        "question_type": "math and value extraction",
+        "additional_prompt": "The answer should be in digits.",
+        "check_fn": check_answer_value
+    },
+    "gsm8k": {
+        "dataset_name": "gsm8k",
+        "test_path": "./data/gsm8k/test.csv",
+        "labeled_path": "./data/gsm8k/labeled.csv",
+        "unlabeled_path": "./data/gsm8k/unlabeled.csv",
+        "question_type": "math",
+        "additional_prompt": "The answer should be in digits.",
+        "check_fn": check_answer_value
+    },
+    "drop": {
+        "dataset_name": "drop",
+        "test_path": "./data/drop/test.csv",
+        "labeled_path": "./data/drop/labeled.csv",
+        "unlabeled_path": "./data/drop/unlabeled.csv",
+        "question_type": "reading comprehension",
+        "additional_prompt": "The answer should be a single word or in digits.",
+        "check_fn": check_answer_fuzzy
     }
 }
 
-EVAL_UTILS = {
-    'math': {
-        'format_fn': format_value_question,
-        'check_fn': check_answer_value,
-        'extract_fn': extract_value,
-    },
-    'multiple_choice': {
-        'format_fn': format_question,
-        'check_fn': check_answer,
-        'extract_fn': extract_result,
-    }
-}
