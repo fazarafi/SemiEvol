@@ -122,3 +122,5 @@ cython_debug/
 
 logs/
 .databak
+wandb/
+save/

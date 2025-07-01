@@ -4,13 +4,20 @@ import pandas as pd
 import random
 import copy
 import numpy as np
-from train_sft import train_sft
+from train_sft import train_sft, train_sft_factuality
 from common import *
 from eval import Evaluator, EvalConfig
 from eval import eval_model
 from config import TASK_CONFIG, MODELS_CONFIG
 import datetime
 from tqdm import tqdm
+
+import sys
+ST_DIR = "/home/lr/faza.thirafi/raid/repository-kenkyuu-models/2024_paper"
+sys.path.append(ST_DIR)
+
+from dataset_loader import load_processed_dataset, from_dataset_to_list
+
 
 def calculate_entropy(probs):
     prob_list = np.array(probs)
@@ -54,6 +61,25 @@ def prepare_data(task, task_config, labeled_path=None, unlabeled_path=None, outp
     labeled_data = load_samples(labeled_path, task_config)
     unlabel_data = load_samples(unlabeled_path, task_config)
     
+    # print("Label", labeled_data[0:3])
+    # print("Unlabel", unlabel_data[0:3])
+    
+    return labeled_data, unlabel_data
+
+def format_labeled_data(dataset):
+    return dataset
+
+def format_unlabeled_data(dataset):
+    for da in dataset:
+        da['id'] = da['bbcid']
+        da['is_factual'] = -1
+    return dataset
+    
+def prepare_data_factuality(task, task_config, labeled_path=None, unlabeled_path=None, output_dir=None):
+    labeled_data = format_labeled_data(load_processed_dataset(dataset_name="xsum_factuality", set_type="test"))
+    # unlabel_data = format_unlabeled_data(from_dataset_to_list(load_processed_dataset(dataset_name="xsum", set_type="test"))) # subset of the same amount of labeled data
+    unlabel_data = format_labeled_data(load_processed_dataset(dataset_name="xsum", set_type="train"))
+    
     return labeled_data, unlabel_data
 
 def run_multiple_inference(all_data: list, num_infer: int, model_config: dict, task: str, base_adapter: str = None) -> list:
@@ -81,6 +107,40 @@ def run_multiple_inference(all_data: list, num_infer: int, model_config: dict, t
         
         _ = eval_instance.run_inference(
             format_fn=format_question_vanilla,
+            extract_fn=extract_result
+        )
+        all_predictions.append(eval_instance.samples)
+
+        del eval_instance
+        clear_mem()
+    
+    return all_predictions
+
+def run_multiple_inference_factuality(all_data: list, num_infer: int, model_config: dict, task: str, base_adapter: str = None) -> list:
+    """Run multiple inferences with progress tracking"""
+    all_predictions = []
+    
+    for i in tqdm(range(num_infer), desc="Running inferences"):
+        current_seed = int(datetime.datetime.now().timestamp() * 1000) + i
+        random.seed(current_seed)
+        
+        print(f"Running inference {i+1} with seed {current_seed}")
+
+        eval_instance = Evaluator(
+            task=task,
+            config=EvalConfig(
+                model=model_config.get('name', ''),
+                temperature=1.0,
+                max_tokens=1024,
+                logprobs=True,
+                lora_path=base_adapter,
+                seed=current_seed
+            ),
+            samples=copy.deepcopy(all_data)
+        )
+        
+        _ = eval_instance.run_inference(
+            format_fn=format_factuality_vanilla,
             extract_fn=extract_result
         )
         all_predictions.append(eval_instance.samples)
@@ -120,6 +180,10 @@ def process_results(unlabel_data, inference_list, num_infer=4):
             save_data[idx]['consist'] = 1
             save_data[idx]['entropy'] = entropy
             conf_samples.append(save_data[idx])
+    
+    print("======================")
+    print("SAVE DATA", save_data[0])
+    print("======================")
     
     print(f'Consistent Rate: {len(conf_samples) / num_examples:.4f}')
     print(f'Inconsistent Rate: {len(unconf_samples) / num_examples:.4f}')
@@ -231,20 +295,27 @@ def run_pipeline(
     # Use paths from task config if not provided
     labeled_data, unlabel_data = prepare_data(task, task_config, labeled_path, unlabeled_path, output_dir)
     
+    labeled_data_fact, unlabel_data_fact = prepare_data_factuality(task, task_config, output_dir=output_dir)
+    
+    labeled_data = labeled_data_fact
+    unlabel_data = unlabel_data_fact
+    
+    
+    # [{'id': 'MCAS_2006_9_31', 'question': 'All organisms classified in kingdom Animalia must also be classified as which of the following?', 'answer': 'C', 'options': '["Archaea", "Eubacteria", "Eukaryota", "Protista"]', 'question_type': 'multi-choice', 'additional_prompt': ''}]
+    print(labeled_data[0:1])
+    
+    
     # Train the SFT model if not already trained
     if not os.path.exists(sft_output_dir):
-        train_sft(
-            dataset=task,
-            model=model_path,
-            adapter=sft_output_dir,
-            samples_list=[labeled_data]
-        )
+        # train_sft(dataset=task,model=model_path,adapter=sft_output_dir,samples_list=[labeled_data])
+        train_sft_factuality(dataset=task,model=model_path,adapter=sft_output_dir,samples_list=[labeled_data])
     else:
         print(f"SFT model already exists at {sft_output_dir}, skipping training")
 
     # Step 2: Run multiple inferences
     print(f"\n=== Step 2: Running Inference ({num_infer} times) ===")
-    inference_list = run_multiple_inference(unlabel_data, num_infer, model_config, task, sft_output_dir)
+    # inference_list = run_multiple_inference(unlabel_data, num_infer, model_config, task, sft_output_dir)
+    inference_list = run_multiple_inference_factuality(unlabel_data, num_infer, model_config, task, sft_output_dir)
     
     # Step 3: Process results
     print("\n=== Step 3: Processing Inference Results ===")
@@ -259,7 +330,7 @@ def run_pipeline(
     print("\n=== Step 5: Training Clean SFT Model ===")
     semievol_output_dir = os.path.join(output_dir, f"semi_evol")
     
-    train_sft(
+    train_sft_factuality(
         dataset=task,
         model=model_path,
         adapter=semievol_output_dir,

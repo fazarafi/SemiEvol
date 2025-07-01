@@ -18,8 +18,29 @@ Question:
 
 {options_str}
 """.strip()
+# "Answer the multi-choice question.\nYour response should be of the following format: 'Answer: LETTER' (without quotes, The LETTER should be in A,B,C,D).\n\nQuestion: \nMarkson Co. traded a concrete-mixing truck with a book value of $10,000 to Pro Co. for a cement-mixing machine with a fair value of $11,000. Markson needs to know the answer to which of the following questions in order to determine whether the exchange has commercial substance?\n\nOptions:\nA. Does the book value of the asset given up exceed the fair value of the asset received?\nB. Is the gain on the exchange less than the increase in future cash flows?\nC. Are the future cash flows expected to change significantly as a result of the exchange?\nD. Is the exchange nontaxable?\n"
+
+
+# TODO use this modification
+OUR_MODIFICATION = ""
+FACTUALITY_INSTRUCTION = """Classify the factual consistency of the above 'summary' and 'document' pair into two labels. 0 is non-factual and 1 is factual. Factual means all the information in the summary can be dedcuted from the document.
+Your response should be of the following format: 'Answer: class' (without quotes, The class should be one of 0 or 1)
+""" + OUR_MODIFICATION
+
+QUERY_TEMPLATE_FACTUALITY = FACTUALITY_INSTRUCTION + """
+{additional_prompt}
+
+Document: 
+{document}
+
+Summary: 
+{summary}
+
+""".strip()
 
 # ANSWER_PATTERN_MULTICHOICE = r"(?i)Answer\s*:\s*([A-Z])"
+ANSWER_PATTERN = r"(?i)Answer\s*:\s*([^\s\n]+)"
+
 ANSWER_PATTERN = r"(?i)Answer\s*:\s*([^\s\n]+)"
 
 def format_option_str(row):
@@ -38,6 +59,12 @@ def format_question_vanilla(row):
     question_type = row['question_type']
     additional_prompt = row['additional_prompt']
     return QUERY_TEMPLATE_MULTICHOICE.format(question=question, options_str=options_str, question_type=question_type, additional_prompt=additional_prompt)
+
+def format_factuality_vanilla(row):
+    document = row['document']
+    summary = row['summary']
+    additional_prompt = "" #TODO use if needed
+    return QUERY_TEMPLATE_FACTUALITY.format(document=document, summary=summary, additional_prompt=additional_prompt)
 
 def get_the_shortest_str_inlist(str_list):
     return min(str_list, key=len)
@@ -81,6 +108,18 @@ def pack_answer(row):
 
     if type(pl) != str:
         pl = parse_string(row['answers_spans'])['spans'][0]
+    
+    pl = clean_string(pl)
+    return f'Answer: {pl}'
+
+def pack_factuality(row):
+    if 'PseudoLabel' in row:
+        pl = row['PseudoLabel']
+    else:
+        pl = str(row['is_factual'])
+
+    # if type(pl) != str:
+    #     pl = parse_string(row['answers_spans'])['spans'][0]
     
     pl = clean_string(pl)
     return f'Answer: {pl}'
@@ -180,6 +219,20 @@ def format_question_alpaca(row, format_fn=format_question_vanilla, task_config=N
         "input": '',
         "output": output_test
     }
+
+def format_question_factuality(row, format_fn=format_factuality_vanilla, task_config=None):
+    input_text = format_fn(row)
+    output_test = pack_factuality(row)
+    return {
+        "instruction": input_text,
+        "input": '',
+        # "input": {
+        #     'document': row['document'],
+        #     'summary': row['summary']
+        # },
+        "output": output_test
+    }
+
 
 def clear_mem(verbose: bool = False) -> None:
     """

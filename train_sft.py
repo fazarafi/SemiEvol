@@ -60,6 +60,64 @@ def train_sft(dataset: str, model: str = None, adapter: str = None, base_adapter
                 for conv in samples
         ]
 
+        # print(conversations[0])
+        # exit()
+        
+        # Save each converted dataset with unique timestamp
+        timestamp = datetime.now().strftime("%d%H%M%S")
+        dataset_name = f'{dataset}_{timestamp}_{idx}'
+        dataset_path = f"{output_dir}/{dataset_name}.json"
+        dataset_absolute_path = str(Path(dataset_path).absolute())
+        dataset_paths.append(dataset_name)
+        
+        save_dataset(conversations, dataset_path)
+
+        # Update dataset info
+        dataset_info_path = 'data/dataset_info.json'
+        with open(dataset_info_path, 'r') as f:
+            dataset_info = json.load(f)
+        dataset_info[dataset_name] = {
+            "file_name": dataset_absolute_path,
+        }
+        with open(dataset_info_path, 'w') as f:
+            json.dump(dataset_info, f, indent=2)
+
+    # Create config with comma-separated dataset names
+    combined_dataset_name = ','.join(dataset_paths)
+    config_path = create_yaml_config(model, combined_dataset_name, output_dir, base_adapter, config_name)
+
+    # Train using LLaMA-Factory CLI
+    cmd = ["llamafactory-cli", "train", config_path]
+    print(f"Running command: {' '.join(cmd)}")
+    subprocess.run(cmd)
+
+# TODO FT modify below
+def train_sft_factuality(dataset: str, model: str = None, adapter: str = None, base_adapter: str = None, samples_list: list = None, config_name: str = "sft"):
+    """
+    Train SFT model using LLaMA-Factory
+    Args:
+        samples_list: List of lists, where each inner list contains conversation samples
+    """
+    if dataset not in TASK_CONFIG:
+        raise ValueError(f"Dataset {dataset} not found in config")
+    task_config = TASK_CONFIG[dataset]
+
+    if samples_list == None:
+        return "samples_list is required"
+    
+    # Process each list of samples separately
+    dataset_paths = []
+    model_nickname = model.split('/')[-1]
+    output_dir = f"save/{model_nickname}/{dataset}/labeled" if not adapter else adapter
+    os.makedirs(output_dir, exist_ok=True)
+    
+    for idx, samples in enumerate(samples_list):
+        
+        conversations = [
+            format_question_factuality(conv, format_factuality_vanilla, task_config)
+                for conv in samples
+        ]
+
         # Save each converted dataset with unique timestamp
         timestamp = datetime.now().strftime("%d%H%M%S")
         dataset_name = f'{dataset}_{timestamp}_{idx}'

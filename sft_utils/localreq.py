@@ -26,7 +26,8 @@ class LocalRequest:
             enable_lora=enable_lora,
             tensor_parallel_size=1,
             gpu_memory_utilization=0.5,
-            max_model_len=4096
+            max_model_len=50000,
+            dtype="float16"
         )
         
         # Store LoRA config if provided

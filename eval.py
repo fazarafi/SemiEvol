@@ -13,7 +13,7 @@ from typing import List, Dict, Any, Optional, Callable
 from dataclasses import dataclass
 # sys.path.append('..')
 from common import *
-from utils import *
+from sft_utils import *
 from config import *
 
 @dataclass
@@ -96,6 +96,9 @@ class Evaluator:
             self.samples[i]["PredAnswer"] = extract_fn(response)
             if "logprobs" in result:
                 self.samples[i]["logprobs"] = result["logprobs"]
+        print("======================")
+        print("PRED SAMPLE", self.samples[0])
+        print("======================")
     
     def run_inference(self, format_fn: Callable, extract_fn: Callable) -> float:
         """Run inference and calculate accuracy"""
@@ -125,6 +128,11 @@ class Evaluator:
     
     def calculate_accuracy(self, check_fn: Callable) -> float:
         """Calculate accuracy of predictions"""
+        
+        print("======================")
+        print(self.samples[0])
+        print("======================")
+        # exit()
         scores = [
             1.0 if check_fn(s['Pred'], s["answer"]) else 0.0
             for s in self.samples
@@ -169,7 +177,7 @@ def eval_model(
     
     # Run evaluation
     accuracy = evaluator.run_inference(
-        format_fn=format_question_vanilla,
+        format_fn=format_factuality_vanilla,
         extract_fn=extract_result
     )
     
