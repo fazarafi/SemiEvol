@@ -5,6 +5,10 @@ import gc
 import torch
 import pandas as pd
 
+import sys
+ST_DIR = "/home/lr/faza.thirafi/raid/repository-kenkyuu-models/2024_paper"
+sys.path.append(ST_DIR)
+
 """
 Vanilla Inference (update)
 """
@@ -22,7 +26,12 @@ Question:
 
 
 # TODO use this modification
-OUR_MODIFICATION = ""
+
+SCORE_PROMPT = "For the consideration, here is the cosine similarity score between the document and the summary: {score}. Please consider it when you give me the final answer.".strip()
+KEYWORD_PROMPT = "Here are the keywords extracted from the document: {keywords}. Please consider them when you give me the final answer.".strip()
+# using yake for keyword extraction
+
+
 FACTUALITY_INSTRUCTION = """Classify the factual consistency of the above 'summary' and 'document' pair into two labels. 0 is non-factual and 1 is factual. Factual means all the information in the summary can be dedcuted from the document.
 Your response should be of the following format: 'Answer: class' (without quotes, The class should be one of 0 or 1)
 """ + OUR_MODIFICATION
@@ -42,27 +51,37 @@ Summary:
 
 ANSWER_PATTERN = r"(?i)Answer\s*:\s*([^\s\n]+)"
 
-def format_option_str(row):
-    if not 'options' in row:
-        return ''
-    options = row['options']
-    if type(options) == str:
-        options = json.loads(options)
-    options = [f"{chr(65+i)}. {option}" for i, option in enumerate(options)]
-    options_str = "\n".join(options)
-    return f'Options:\n{options_str}\n'
 
-def format_question_vanilla(row):
-    question = row['question']
-    options_str = format_option_str(row)
-    question_type = row['question_type']
-    additional_prompt = row['additional_prompt']
-    return QUERY_TEMPLATE_MULTICHOICE.format(question=question, options_str=options_str, question_type=question_type, additional_prompt=additional_prompt)
+def calculate_cosine(text1, text2):
+    """Calculate cosine similarity between two texts."""
+    vectorizer = TfidfVectorizer().fit([text1, text2])
+    tfidf = vectorizer.transform([text1, text2])
+    score = cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0]
+    return score
 
-def format_factuality_vanilla(row):
+# def format_option_str(row):
+#     if not 'options' in row:
+#         return ''
+#     options = row['options']
+#     if type(options) == str:
+#         options = json.loads(options)
+#     options = [f"{chr(65+i)}. {option}" for i, option in enumerate(options)]
+#     options_str = "\n".join(options)
+#     return f'Options:\n{options_str}\n'
+
+# def format_question_vanilla(row):
+#     question = row['question']
+#     options_str = format_option_str(row)
+#     question_type = row['question_type']
+#     additional_prompt = row['additional_prompt']
+#     return QUERY_TEMPLATE_MULTICHOICE.format(question=question, options_str=options_str, question_type=question_type, additional_prompt=additional_prompt)
+
+def format_factuality_vanilla(row, sentence_embedding=None):
     document = row['document']
     summary = row['summary']
-    additional_prompt = "" #TODO use if needed
+    
+    additional_prompt = SCORE_PROMPT.format(score=row['score'])) if 'score' in row else '' + 
+        KEYWORD_PROMPT.format(keywords=row['keywords']) if 'keywords' in row else ''
     return QUERY_TEMPLATE_FACTUALITY.format(document=document, summary=summary, additional_prompt=additional_prompt)
 
 def get_the_shortest_str_inlist(str_list):

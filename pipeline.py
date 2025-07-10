@@ -4,7 +4,7 @@ import pandas as pd
 import random
 import copy
 import numpy as np
-from train_sft import train_sft, train_sft_factuality
+from train_sft import train_sft_factuality #, train_sft
 from common import *
 from eval import Evaluator, EvalConfig
 from eval import eval_model
@@ -17,7 +17,8 @@ ST_DIR = "/home/lr/faza.thirafi/raid/repository-kenkyuu-models/2024_paper"
 sys.path.append(ST_DIR)
 
 from dataset_loader import load_processed_dataset, from_dataset_to_list
-
+from keyword_extractor import extract_keywords
+from sentence_embedding import SentenceEmbedding
 
 def calculate_entropy(probs):
     prob_list = np.array(probs)
@@ -67,6 +68,15 @@ def prepare_data(task, task_config, labeled_path=None, unlabeled_path=None, outp
     return labeled_data, unlabel_data
 
 def format_unlabeled_data(dataset):
+    sentence_embedding = SentenceEmbedding()
+    for da in dataset:
+        # da['id'] = da['bbcid']
+        # da['is_factual'] = -1
+        da['score'] = sentence_embedding.calculate_cosine(da['document'], da['summary']) 
+            if 'document' in da and 'summary' in da else 0.0
+        da['keywords'] = extract_keywords(da['document']) if 'document' in da else []
+    return dataset
+    
     # empty_preds = [""] * len(dataset)
     # dataset = dataset.add_column("Pred", empty_preds)
     # dataset = dataset.add_column("PredAnswer", empty_preds)
@@ -78,7 +88,7 @@ def format_unlabeled_data(dataset):
 
     # print(list_of_dicts)
 
-    return dataset
+    # return dataset
 
 # def format_unlabeled_data(dataset):
 #     for da in dataset:
