@@ -80,7 +80,7 @@ def format_factuality_vanilla(row, sentence_embedding=None):
     document = row['document']
     summary = row['summary']
     
-    additional_prompt = SCORE_PROMPT.format(score=row['score'])) if 'score' in row else '' + 
+    additional_prompt = SCORE_PROMPT.format(score=row['score']) if 'score' in row else '' + 
         KEYWORD_PROMPT.format(keywords=row['keywords']) if 'keywords' in row else ''
     return QUERY_TEMPLATE_FACTUALITY.format(document=document, summary=summary, additional_prompt=additional_prompt)
 
