@@ -157,5 +157,62 @@
   },
   "arc_30152145_0": {
     "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0630_1521/sft/arc_30152145_0.json"
+  },
+  "arc_01155732_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0701_1557/sft/arc_01155732_0.json"
+  },
+  "arc_03112442_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0703_1124/sft/arc_03112442_0.json"
+  },
+  "arc_07140617_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0707_1406/sft/arc_07140617_0.json"
+  },
+  "arc_08065650_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0708_0656/sft/arc_08065650_0.json"
+  },
+  "arc_08112926_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0708_1129/sft/arc_08112926_0.json"
+  },
+  "arc_08115634_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0708_1156/sft/arc_08115634_0.json"
+  },
+  "arc_08140300_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0708_1402/sft/arc_08140300_0.json"
+  },
+  "arc_08143033_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0708_1430/sft/arc_08143033_0.json"
+  },
+  "arc_08145306_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0708_1453/sft/arc_08145306_0.json"
+  },
+  "arc_08172301_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0708_1722/sft/arc_08172301_0.json"
+  },
+  "arc_08180259_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0708_1802/sft/arc_08180259_0.json"
+  },
+  "arc_08215642_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0708_2156/sft/arc_08215642_0.json"
+  },
+  "arc_09103921_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0709_1039/sft/arc_09103921_0.json"
+  },
+  "arc_09161816_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0709_1618/sft/arc_09161816_0.json"
+  },
+  "arc_09170931_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/arc_0709_1709/sft/arc_09170931_0.json"
+  },
+  "factuality_09172637_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/factuality_0709_1726/sft/factuality_09172637_0.json"
+  },
+  "factuality_09174607_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/factuality_0709_1746/sft/factuality_09174607_0.json"
+  },
+  "factuality_10101907_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/factuality_0710_1019/sft/factuality_10101907_0.json"
+  },
+  "factuality_10102423_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/factuality_0710_1023/sft/factuality_10102423_0.json"
   }
 }

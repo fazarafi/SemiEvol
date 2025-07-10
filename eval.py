@@ -16,6 +16,8 @@ from common import *
 from sft_utils import *
 from config import *
 
+# update again
+
 @dataclass
 class EvalConfig:
     """Configuration for evaluation"""
@@ -63,6 +65,11 @@ class SampleProcessor:
             samples.append(sample)
         return samples
 
+    @staticmethod
+    def load_samples_factuality(task_config: Dict, num_samples: Optional[int] = None) -> List[Dict]:
+        samples = load_processed_dataset(dataset_name="xsum_factuality", set_type="test")
+        return samples
+
 class Evaluator:
     """Main evaluation class"""
     def __init__(
@@ -92,10 +99,38 @@ class Evaluator:
         assert len(res_list) == len(self.samples)
         for i, (sample, result) in enumerate(zip(self.samples, res_list)):
             response = result['response']
+
+            # print("@@@@@@@@@")
+            # print("----")
+            # # print(response)
+
+            print("self.samples[",i,"] BEFORE:", self.samples[i])
+            # print("->>")
+            # print("type", type(self.samples[i]))
+            # print("Pred before::", response)
+            # print("PredAnswer before::", extract_fn(response))
+            # print("->>")
+            
+
             self.samples[i]["Pred"] = response
+            # print("self.samples[",i,"] AFTER:", self.samples[i])
+            # print("Pred", self.samples[i]["Pred"])
+            
             self.samples[i]["PredAnswer"] = extract_fn(response)
+            # print("PredAnswer", self.samples[i]["PredAnswer"])
+
+            # s = dict(self.samples[i])  # make a copy just for visibility
+            # s["Pred"] = response
+            # s["PredAnswer"] = extract_fn(response)
+            # print("FORCED UPDATE:", s)
+            # self.samples[i] = s
+            # print("self.samples[",i,"] AFTER:", self.samples[i])
+            
+            
             if "logprobs" in result:
                 self.samples[i]["logprobs"] = result["logprobs"]
+            print("(after) sample ",i,"-th:",self.samples[i])
+
         print("======================")
         print("PRED SAMPLE", self.samples[0])
         print("======================")
@@ -130,11 +165,12 @@ class Evaluator:
         """Calculate accuracy of predictions"""
         
         print("======================")
-        print(self.samples[0])
+        print("Len Sample:", len(self.samples))
+        print("sample[0]:", self.samples[0])
         print("======================")
         # exit()
         scores = [
-            1.0 if check_fn(s['Pred'], s["answer"]) else 0.0
+            1.0 if check_fn(s['Pred'], 1) else 0.0 # 1 -> s["answer"]
             for s in self.samples
         ]
         return np.mean(scores)
@@ -171,7 +207,7 @@ def eval_model(
         seed=seed
     )
     
-    samples = SampleProcessor.load_samples(TASK_CONFIG[task], num_samples)
+    samples = SampleProcessor.load_samples_factuality(TASK_CONFIG[task], num_samples)
     evaluator = Evaluator(task, config, samples)
     saver = ResultSaver(task)
     

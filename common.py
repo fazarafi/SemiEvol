@@ -6,7 +6,7 @@ import torch
 import pandas as pd
 
 """
-Vanilla Inference
+Vanilla Inference (update)
 """
 
 QUERY_TEMPLATE_MULTICHOICE = """
@@ -39,7 +39,6 @@ Summary:
 """.strip()
 
 # ANSWER_PATTERN_MULTICHOICE = r"(?i)Answer\s*:\s*([A-Z])"
-ANSWER_PATTERN = r"(?i)Answer\s*:\s*([^\s\n]+)"
 
 ANSWER_PATTERN = r"(?i)Answer\s*:\s*([^\s\n]+)"
 
@@ -127,6 +126,14 @@ def pack_factuality(row):
 """
 Check Answer
 """
+
+def check_factuality(res, gt):
+    pred = extract_result(res)
+    if type(gt) == int:
+        gt_pred = gt
+    else:
+        gt_pred = extract_result(gt)
+    return pred == gt_pred
 
 def check_consistency(res, gt):
     pred = extract_result(res)

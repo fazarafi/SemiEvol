@@ -66,55 +66,66 @@ def prepare_data(task, task_config, labeled_path=None, unlabeled_path=None, outp
     
     return labeled_data, unlabel_data
 
-def format_labeled_data(dataset):
+def format_unlabeled_data(dataset):
+    # empty_preds = [""] * len(dataset)
+    # dataset = dataset.add_column("Pred", empty_preds)
+    # dataset = dataset.add_column("PredAnswer", empty_preds)
+
+    # list_of_dicts = dataset.to_list()
+
+    # OR: the equivalent explicit way:
+    # list_of_dicts = [dict(row) for row in dataset]
+
+    # print(list_of_dicts)
+
     return dataset
 
-def format_unlabeled_data(dataset):
-    for da in dataset:
-        da['id'] = da['bbcid']
-        da['is_factual'] = -1
-    return dataset
+# def format_unlabeled_data(dataset):
+#     for da in dataset:
+#         da['id'] = da['bbcid']
+#         da['is_factual'] = -1
+#     return dataset
     
 def prepare_data_factuality(task, task_config, labeled_path=None, unlabeled_path=None, output_dir=None):
-    labeled_data = format_labeled_data(load_processed_dataset(dataset_name="xsum_factuality", set_type="test"))
+    labeled_data = load_processed_dataset(dataset_name="xsum_factuality", set_type="train")
     # unlabel_data = format_unlabeled_data(from_dataset_to_list(load_processed_dataset(dataset_name="xsum", set_type="test"))) # subset of the same amount of labeled data
-    unlabel_data = format_labeled_data(load_processed_dataset(dataset_name="xsum", set_type="train"))
+    unlabel_data = format_unlabeled_data(load_processed_dataset(dataset_name="xsum", set_type="test").to_list())
     
     return labeled_data, unlabel_data
 
-def run_multiple_inference(all_data: list, num_infer: int, model_config: dict, task: str, base_adapter: str = None) -> list:
-    """Run multiple inferences with progress tracking"""
-    all_predictions = []
+# def run_multiple_inference(all_data: list, num_infer: int, model_config: dict, task: str, base_adapter: str = None) -> list:
+#     """Run multiple inferences with progress tracking"""
+#     all_predictions = []
     
-    for i in tqdm(range(num_infer), desc="Running inferences"):
-        current_seed = int(datetime.datetime.now().timestamp() * 1000) + i
-        random.seed(current_seed)
+#     for i in tqdm(range(num_infer), desc="Running inferences"):
+#         current_seed = int(datetime.datetime.now().timestamp() * 1000) + i
+#         random.seed(current_seed)
         
-        print(f"Running inference {i+1} with seed {current_seed}")
+#         print(f"Running inference {i+1} with seed {current_seed}")
 
-        eval_instance = Evaluator(
-            task=task,
-            config=EvalConfig(
-                model=model_config.get('name', ''),
-                temperature=1.0,
-                max_tokens=1024,
-                logprobs=True,
-                lora_path=base_adapter,
-                seed=current_seed
-            ),
-            samples=copy.deepcopy(all_data)
-        )
+#         eval_instance = Evaluator(
+#             task=task,
+#             config=EvalConfig(
+#                 model=model_config.get('name', ''),
+#                 temperature=1.0,
+#                 max_tokens=1024,
+#                 logprobs=True,
+#                 lora_path=base_adapter,
+#                 seed=current_seed
+#             ),
+#             samples=copy.deepcopy(all_data)
+#         )
         
-        _ = eval_instance.run_inference(
-            format_fn=format_question_vanilla,
-            extract_fn=extract_result
-        )
-        all_predictions.append(eval_instance.samples)
+#         _ = eval_instance.run_inference(
+#             format_fn=format_question_vanilla,
+#             extract_fn=extract_result
+#         )
+#         all_predictions.append(eval_instance.samples)
 
-        del eval_instance
-        clear_mem()
+#         del eval_instance
+#         clear_mem()
     
-    return all_predictions
+#     return all_predictions
 
 def run_multiple_inference_factuality(all_data: list, num_infer: int, model_config: dict, task: str, base_adapter: str = None) -> list:
     """Run multiple inferences with progress tracking"""
@@ -293,7 +304,7 @@ def run_pipeline(
     sft_output_dir = os.path.join(output_dir, "sft")
     
     # Use paths from task config if not provided
-    labeled_data, unlabel_data = prepare_data(task, task_config, labeled_path, unlabeled_path, output_dir)
+    #labeled_data, unlabel_data = prepare_data(task, task_config, labeled_path, unlabeled_path, output_dir)
     
     labeled_data_fact, unlabel_data_fact = prepare_data_factuality(task, task_config, output_dir=output_dir)
     

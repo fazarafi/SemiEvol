@@ -17,6 +17,15 @@ MODELS_CONFIG = {
 
 
 TASK_CONFIG = {
+    "factuality": {
+        "dataset_name": "xsum_factuality",
+        "test_path": "./data/mmlu/test.csv",
+        "labeled_path": "./data/mmlu/labeled.csv",
+        "unlabeled_path": "./data/mmlu/unlabeled.csv",
+        "question_type": "multi-choice",
+        "additional_prompt": "Your response should be of the following format: 'Answer: LETTER' (without quotes, The LETTER should be in A,B,C,D).",
+        "check_fn": check_factuality
+    },
     "mmlu": {
         "dataset_name": "mmlu",
         "test_path": "./data/mmlu/test.csv",
