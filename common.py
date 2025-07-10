@@ -31,7 +31,7 @@ SCORE_PROMPT = "For the consideration, here is the cosine similarity score betwe
 KEYWORD_PROMPT = "Here are the keywords extracted from the document: {keywords}. Please consider them when you give me the final answer.".strip()
 # using yake for keyword extraction
 
-
+OUR_MODIFICATION = ""
 FACTUALITY_INSTRUCTION = """Classify the factual consistency of the above 'summary' and 'document' pair into two labels. 0 is non-factual and 1 is factual. Factual means all the information in the summary can be dedcuted from the document.
 Your response should be of the following format: 'Answer: class' (without quotes, The class should be one of 0 or 1)
 """ + OUR_MODIFICATION
