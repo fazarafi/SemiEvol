@@ -318,9 +318,9 @@ def run_pipeline(
     
     labeled_data_fact, unlabel_data_fact = prepare_data_factuality(task, task_config, output_dir=output_dir)
     
+    # Use only 100 samples for labeled and unlabeled data
     labeled_data = labeled_data_fact[:100]
     unlabel_data = unlabel_data_fact[:100]
-    
     
     # [{'id': 'MCAS_2006_9_31', 'question': 'All organisms classified in kingdom Animalia must also be classified as which of the following?', 'answer': 'C', 'options': '["Archaea", "Eubacteria", "Eukaryota", "Protista"]', 'question_type': 'multi-choice', 'additional_prompt': ''}]
     print(labeled_data[0:1])
