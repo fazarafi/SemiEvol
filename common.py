@@ -128,11 +128,14 @@ Check Answer
 """
 
 def check_factuality(res, gt):
+    print("check_factuality:", res,", tgt:", gt)
     pred = extract_result(res)
     if type(gt) == int:
         gt_pred = gt
     else:
         gt_pred = extract_result(gt)
+
+    print("check_factuality:", pred == gt_pred)
     return pred == gt_pred
 
 def check_consistency(res, gt):
@@ -287,10 +290,24 @@ Multiple Answers:
 Now, please directly give me the final correct answer:
 """
 
+FACTUALITY_REFLECTION = """Here are the multiple answers of the multiple choice question.  Please consider them thoroughly and give me the correct answer. Your response should be of the following format: 'Answer: class' (without quotes, The class should be one of 0 or 1).
+
+Document: 
+{document}
+
+Summary: 
+{summary}
+
+Multiple Labels:
+{answers}
+
+Now, please directly give me the final correct answer:
+"""
+
 
 def format_reflection(data):
-    question = data['question']
-    options = data['options']
+    document = data['document']
+    summary = data['summary']
     preds = '\n'.join(data['Preds'])
-    return REFLECTION.format(question=question, options=options, answers=preds)
+    return FACTUALITY_REFLECTION.format(document=document, summary=summary, answers=preds)
 

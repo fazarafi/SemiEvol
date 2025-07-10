@@ -104,7 +104,7 @@ class Evaluator:
             # print("----")
             # # print(response)
 
-            print("self.samples[",i,"] BEFORE:", self.samples[i])
+            # print("self.samples[",i,"] BEFORE:", self.samples[i])
             # print("->>")
             # print("type", type(self.samples[i]))
             # print("Pred before::", response)
@@ -129,7 +129,7 @@ class Evaluator:
             
             if "logprobs" in result:
                 self.samples[i]["logprobs"] = result["logprobs"]
-            print("(after) sample ",i,"-th:",self.samples[i])
+            # print("(after) sample ",i,"-th:",self.samples[i])
 
         print("======================")
         print("PRED SAMPLE", self.samples[0])
@@ -164,10 +164,10 @@ class Evaluator:
     def calculate_accuracy(self, check_fn: Callable) -> float:
         """Calculate accuracy of predictions"""
         
-        print("======================")
-        print("Len Sample:", len(self.samples))
-        print("sample[0]:", self.samples[0])
-        print("======================")
+        # print("======================")
+        # print("Len Sample:", len(self.samples))
+        # print("sample[0]:", self.samples[0])
+        # print("======================")
         # exit()
         scores = [
             1.0 if check_fn(s['Pred'], 1) else 0.0 # 1 -> s["answer"]

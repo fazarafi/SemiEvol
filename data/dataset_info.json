@@ -214,5 +214,8 @@
   },
   "factuality_10102423_0": {
     "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/factuality_0710_1023/sft/factuality_10102423_0.json"
+  },
+  "factuality_10133742_0": {
+    "file_name": "/raid/faza.thirafi/repository-kenkyuu-models/2024_paper/ex_tools/SemiEvol-fact/save/llama3.2/factuality_0710_1337/sft/factuality_10133742_0.json"
   }
 }
