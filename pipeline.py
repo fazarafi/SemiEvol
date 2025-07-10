@@ -69,7 +69,7 @@ def prepare_data(task, task_config, labeled_path=None, unlabeled_path=None, outp
 
 def format_unlabeled_data(dataset):
     sentence_embedding = SentenceEmbedding()
-    for da in dataset:
+    for da in tqdm(dataset, desc="Formatting unlabeled data"):
         # da['id'] = da['bbcid']
         # da['is_factual'] = -1
         da['score'] = sentence_embedding.calculate_similarity(da['document'], da['summary']) if 'document' in da and 'summary' in da else 0.0
