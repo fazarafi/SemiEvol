@@ -96,11 +96,13 @@ def format_unlabeled_data(dataset):
 #         da['is_factual'] = -1
 #     return dataset
     
-def prepare_data_factuality(task, task_config, labeled_path=None, unlabeled_path=None, output_dir=None):
-    labeled_data = load_processed_dataset(dataset_name="xsum_factuality", set_type="train")
-    # unlabel_data = format_unlabeled_data(from_dataset_to_list(load_processed_dataset(dataset_name="xsum", set_type="test"))) # subset of the same amount of labeled data
-    unlabel_data = format_unlabeled_data(load_processed_dataset(dataset_name="xsum", set_type="test").to_list())
-    
+def prepare_data_factuality(task, task_config, labeled_path=None, unlabeled_path=None, output_dir=None, num_samples=100):
+    if num_samples > 0:    
+        labeled_data = load_processed_dataset(dataset_name="xsum_factuality", set_type="train")[:num_samples]
+        unlabel_data = format_unlabeled_data(load_processed_dataset(dataset_name="xsum", set_type="test").to_list()[:num_samples])
+    else:
+        labeled_data = load_processed_dataset(dataset_name="xsum_factuality", set_type="train")
+        unlabel_data = format_unlabeled_data(load_processed_dataset(dataset_name="xsum", set_type="test").to_list())
     return labeled_data, unlabel_data
 
 # def run_multiple_inference(all_data: list, num_infer: int, model_config: dict, task: str, base_adapter: str = None) -> list:
@@ -316,11 +318,12 @@ def run_pipeline(
     # Use paths from task config if not provided
     #labeled_data, unlabel_data = prepare_data(task, task_config, labeled_path, unlabeled_path, output_dir)
     
-    labeled_data_fact, unlabel_data_fact = prepare_data_factuality(task, task_config, output_dir=output_dir)
+    num_samples = 100
     
-    # Use only 100 samples for labeled and unlabeled data
-    labeled_data = labeled_data_fact[:100]
-    unlabel_data = unlabel_data_fact[:100]
+    labeled_data_fact, unlabel_data_fact = prepare_data_factuality(task, task_config, output_dir=output_dir, num_samples=num_samples)
+    
+    labeled_data = labeled_data_fact
+    unlabel_data = unlabel_data_fact
     
     # [{'id': 'MCAS_2006_9_31', 'question': 'All organisms classified in kingdom Animalia must also be classified as which of the following?', 'answer': 'C', 'options': '["Archaea", "Eubacteria", "Eukaryota", "Protista"]', 'question_type': 'multi-choice', 'additional_prompt': ''}]
     print(labeled_data[0:1])
