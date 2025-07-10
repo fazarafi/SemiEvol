@@ -73,8 +73,7 @@ def format_unlabeled_data(dataset):
         # da['id'] = da['bbcid']
         # da['is_factual'] = -1
         da['score'] = sentence_embedding.calculate_similarity(da['document'], da['summary']) if 'document' in da and 'summary' in da else 0.0
-        da['score'] = sentence_embedding.calculate_similarity(da['document'], da['summary']) if 'document' in da and 'summary' in da else 0.0
-        da['keywords'] = extract_keywords(da['document']) if 'document' in da else []
+        da['keywords'] = extract_keywords(da['document'], num_keyword=5) if 'document' in da else []
         print("dt:",da)
     return dataset
     
