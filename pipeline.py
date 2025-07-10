@@ -308,8 +308,8 @@ def run_pipeline(
     
     labeled_data_fact, unlabel_data_fact = prepare_data_factuality(task, task_config, output_dir=output_dir)
     
-    labeled_data = labeled_data_fact
-    unlabel_data = unlabel_data_fact
+    labeled_data = labeled_data_fact[:100]
+    unlabel_data = unlabel_data_fact[:100]
     
     
     # [{'id': 'MCAS_2006_9_31', 'question': 'All organisms classified in kingdom Animalia must also be classified as which of the following?', 'answer': 'C', 'options': '["Archaea", "Eubacteria", "Eukaryota", "Protista"]', 'question_type': 'multi-choice', 'additional_prompt': ''}]
@@ -354,7 +354,8 @@ def run_pipeline(
     eval_model(
         task=task,
         model=model_path,
-        adapter=semievol_output_dir
+        adapter=semievol_output_dir,
+        num_samples=10
     )
 
 if __name__ == "__main__":

@@ -16,7 +16,12 @@ from common import *
 from sft_utils import *
 from config import *
 
-# update again
+import sys
+ST_DIR = "/home/lr/faza.thirafi/raid/repository-kenkyuu-models/2024_paper"
+sys.path.append(ST_DIR)
+
+from dataset_loader import load_processed_dataset, from_dataset_to_list
+
 
 @dataclass
 class EvalConfig:
