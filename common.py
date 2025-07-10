@@ -59,22 +59,22 @@ def calculate_cosine(text1, text2):
     score = cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0]
     return score
 
-# def format_option_str(row):
-#     if not 'options' in row:
-#         return ''
-#     options = row['options']
-#     if type(options) == str:
-#         options = json.loads(options)
-#     options = [f"{chr(65+i)}. {option}" for i, option in enumerate(options)]
-#     options_str = "\n".join(options)
-#     return f'Options:\n{options_str}\n'
+def format_option_str(row):
+    if not 'options' in row:
+        return ''
+    options = row['options']
+    if type(options) == str:
+        options = json.loads(options)
+    options = [f"{chr(65+i)}. {option}" for i, option in enumerate(options)]
+    options_str = "\n".join(options)
+    return f'Options:\n{options_str}\n'
 
-# def format_question_vanilla(row):
-#     question = row['question']
-#     options_str = format_option_str(row)
-#     question_type = row['question_type']
-#     additional_prompt = row['additional_prompt']
-#     return QUERY_TEMPLATE_MULTICHOICE.format(question=question, options_str=options_str, question_type=question_type, additional_prompt=additional_prompt)
+def format_question_vanilla(row):
+    question = row['question']
+    options_str = format_option_str(row)
+    question_type = row['question_type']
+    additional_prompt = row['additional_prompt']
+    return QUERY_TEMPLATE_MULTICHOICE.format(question=question, options_str=options_str, question_type=question_type, additional_prompt=additional_prompt)
 
 def format_factuality_vanilla(row, sentence_embedding=None):
     document = row['document']
