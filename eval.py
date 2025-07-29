@@ -106,9 +106,10 @@ class Evaluator:
             response = result['response']
 
             # print("@@@@@@@@@")
+            # print("@@@@")
+            # print(response)
             # print("----")
-            # # print(response)
-
+            
             # print("self.samples[",i,"] BEFORE:", self.samples[i])
             # print("->>")
             # print("type", type(self.samples[i]))
@@ -135,10 +136,6 @@ class Evaluator:
             if "logprobs" in result:
                 self.samples[i]["logprobs"] = result["logprobs"]
             # print("(after) sample ",i,"-th:",self.samples[i])
-
-        print("======================")
-        print("PRED SAMPLE", self.samples[0])
-        print("======================")
     
     def run_inference(self, format_fn: Callable, extract_fn: Callable) -> float:
         """Run inference and calculate accuracy"""
@@ -161,6 +158,8 @@ class Evaluator:
             "logprobs": self.config.logprobs,
             "seed": self.config.seed
         }
+        # print("instances", instances[0])
+        # print(len(instances[0]))
         res_list = self.gptreq.batch_req(instances, config_dict, save=True, save_dir=self.output_path)
         self._process_responses(res_list, extract_fn)
         
@@ -168,15 +167,9 @@ class Evaluator:
     
     def calculate_accuracy(self, check_fn: Callable) -> float:
         """Calculate accuracy of predictions"""
-        
-        # print("======================")
-        # print("Len Sample:", len(self.samples))
-        # print("sample[0]:", self.samples[0])
-        # print("======================")
-        # exit()
         scores = [
-            1.0 if check_fn(s['Pred'], 1) else 0.0 # 1 -> s["answer"]
-            for s in self.samples
+            1.0 if check_fn(s['Pred'], s['is_factual'] if 'is_factual' in s else 1) else 0.0 # 1 -> s["answer"]
+            for s in tqdm(self.samples, desc="Calculating accuracy")
         ]
         return np.mean(scores)
 

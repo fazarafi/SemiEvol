@@ -59,9 +59,6 @@ def train_sft(dataset: str, model: str = None, adapter: str = None, base_adapter
             format_question_alpaca(conv, format_question_vanilla, task_config)
                 for conv in samples
         ]
-
-        # print(conversations[0])
-        # exit()
         
         # Save each converted dataset with unique timestamp
         timestamp = datetime.now().strftime("%d%H%M%S")

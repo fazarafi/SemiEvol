@@ -128,15 +128,12 @@ Check Answer
 """
 
 def check_factuality(res, gt):
-    print("check_factuality:", res,", tgt:", gt)
     pred = extract_result(res)
     if type(gt) == int:
         gt_pred = gt
     else:
         gt_pred = extract_result(gt)
-
-    print("check_factuality:", pred == gt_pred)
-    return pred == gt_pred
+    return str(pred) == str(gt_pred)
 
 def check_consistency(res, gt):
     pred = extract_result(res)
