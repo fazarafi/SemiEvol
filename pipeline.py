@@ -363,7 +363,8 @@ def run_pipeline(
         task=task,
         model=model_path,
         adapter=semievol_output_dir,
-        num_samples=10
+        num_samples=10,
+        test_dataset= unlabeled_dataset_name,
     )
 
 if __name__ == "__main__":

@@ -71,8 +71,8 @@ class SampleProcessor:
         return samples
 
     @staticmethod
-    def load_samples_factuality(task_config: Dict, num_samples: Optional[int] = None) -> List[Dict]:
-        samples = load_processed_dataset(dataset_name="xsum_factuality", set_type="test")
+    def load_samples_factuality(task_config: Dict, num_samples: Optional[int] = None, test_dataset: Optional[str] = "xsum_factuality") -> List[Dict]:
+        samples = load_processed_dataset(dataset_name=test_dataset, set_type="test")
         return samples
 
 class Evaluator:
@@ -177,7 +177,8 @@ def eval_model(
     task: str,
     model: str,
     adapter: Optional[str] = None,
-    num_samples: Optional[int] = None
+    num_samples: Optional[int] = None,
+    test_dataset: Optional[str] = "xsum_factuality"  # Default dataset for factuality evaluation,
 ):
     """
     Run evaluation with specified parameters
@@ -205,7 +206,7 @@ def eval_model(
         seed=seed
     )
     
-    samples = SampleProcessor.load_samples_factuality(TASK_CONFIG[task], num_samples)
+    samples = SampleProcessor.load_samples_factuality(TASK_CONFIG[task], num_samples, test_dataset)
     evaluator = Evaluator(task, config, samples)
     saver = ResultSaver(task)
     
