@@ -72,7 +72,10 @@ class SampleProcessor:
 
     @staticmethod
     def load_samples_factuality(task_config: Dict, num_samples: Optional[int] = None, test_dataset: Optional[str] = "xsum_factuality") -> List[Dict]:
-        samples = load_processed_dataset(dataset_name=test_dataset, set_type="test")
+        if num_samples > 0:    
+            samples = load_processed_dataset(dataset_name=test_dataset, set_type="test")[:num_samples]
+        else:
+            samples = load_processed_dataset(dataset_name=test_dataset, set_type="test")
         return samples
 
 class Evaluator:
@@ -167,6 +170,7 @@ class Evaluator:
     
     def calculate_accuracy(self, check_fn: Callable) -> float:
         """Calculate accuracy of predictions"""
+        print("self.samples:",self.samples[0])
         scores = [
             1.0 if check_fn(s['Pred'], s['is_factual'] if 'is_factual' in s else 1) else 0.0 # 1 -> s["answer"]
             for s in tqdm(self.samples, desc="Calculating accuracy")
@@ -206,7 +210,7 @@ def eval_model(
         seed=seed
     )
     
-    samples = SampleProcessor.load_samples_factuality(TASK_CONFIG[task], num_samples, test_dataset)
+    samples = SampleProcessor.load_samples_factuality(TASK_CONFIG[task], num_samples, test_dataset=test_dataset)
     evaluator = Evaluator(task, config, samples)
     saver = ResultSaver(task)
     

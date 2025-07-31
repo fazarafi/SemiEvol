@@ -126,3 +126,4 @@ wandb/
 save/
 
 data/dataset_info.json
+*.txt
